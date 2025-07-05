@@ -5,6 +5,7 @@ Module for Ellipse Tool.
 # pylint: disable-next=import-error
 from tools.base_tool import BaseTool
 
+
 class EllipseTool(BaseTool):
     """
     A drawing tool for placing ellipse shapes on the canvas.
@@ -41,7 +42,12 @@ class EllipseTool(BaseTool):
         h = abs(y2 - y1)
         x = min(x1, x2)
         y = min(y1, y2)
-        return {'type': 'ellipse', 'x': x + w/2, 'y': y + h/2, 'w': w, 'h': h}
+        return {
+            'type': 'ellipse',
+            'x': x + w / 2,
+            'y': y + h / 2,
+            'w': w,
+            'h': h}
 
     def place(self, x1, y1, x2, y2):
         """
@@ -62,7 +68,13 @@ class EllipseTool(BaseTool):
         h = abs(y2 - y1)
         x = min(x1, x2)
         y = min(y1, y2)
-        return {'type': 'ellipse', 'x': x + w/2, 'y': y + h/2, 'w': w, 'h': h}
+        return {
+            'type': 'ellipse',
+            'x': x + w / 2,
+            'y': y + h / 2,
+            'w': w,
+            'h': h}
+
 
 def register(hooks):
     """
@@ -72,4 +84,5 @@ def register(hooks):
         hooks: The HookManager instance to register the tool with.
     """
     tool = EllipseTool(hooks)
-    hooks.run_hooks('tool.register', None, tool=tool, icon_path='assets/icons/ellipse.png')
+    hooks.run_hooks('tool.register', None, tool=tool,
+                    icon_path='assets/icons/ellipse.png')

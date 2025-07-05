@@ -4,6 +4,7 @@ Plugin that tweaks rectangle shapes by randomly modifying their position and siz
 Registers a hook to adjust rectangles during placement using the 'shape.place' hook.
 """
 
+
 def tweak_rect(shape):
     """
     Randomly modify the position and size of a rectangle shape.

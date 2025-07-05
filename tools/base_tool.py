@@ -27,8 +27,7 @@ class BaseTool:
         Returns:
             dict: A dictionary representing the preview shape.
         """
-        # pylint: disable-next=unnecessary-pass
-        pass
+        raise NotImplementedError
 
     def place(self, x1, y1, x2, y2) -> dict:
         """
@@ -49,5 +48,4 @@ class BaseTool:
         Returns:
             dict: A dictionary representing the placed shape.
         """
-        # pylint: disable-next=unnecessary-pass
-        pass
+        raise NotImplementedError

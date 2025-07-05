@@ -5,6 +5,8 @@ Module managing the canvas state and tool interactions.
 import py5
 
 # pylint: disable-next=too-many-instance-attributes
+
+
 class CanvasManager:
     """
     Manages the drawing canvas, current tool, and the list of drawn shapes.
@@ -68,8 +70,8 @@ class CanvasManager:
             y (float): Current Y-coordinate of the mouse during the drag.
         """
         if self.current_tool and self.placing:
-            self.preview_shape = self.current_tool.make_preview(self.start_x, self.start_y, x, y)
-
+            self.preview_shape = self.current_tool.make_preview(
+                self.start_x, self.start_y, x, y)
 
     def finish_place(self, x, y):
         """
@@ -87,7 +89,9 @@ class CanvasManager:
             shape = self.hooks.run_hooks('shape.place', shape)
             self.shapes.append(shape)
             # pylint: disable-next=unnecessary-lambda
-            self.undo.record(lambda: self.shapes.pop(), lambda: self.shapes.append(shape))
+            self.undo.record(
+                lambda: self.shapes.pop(),
+                lambda: self.shapes.append(shape))
 
         self.placing = False
         self.preview_shape = None
@@ -113,7 +117,8 @@ class CanvasManager:
             shape (BaseTool): Shape instance.
             preview (bool): Whether the shape is a preview.
         """
-        handled = self.hooks.run_hooks('shape.draw', False, shape=shape, preview=preview)
+        handled = self.hooks.run_hooks(
+            'shape.draw', False, shape=shape, preview=preview)
 
         if handled:
             return
@@ -127,5 +132,9 @@ class CanvasManager:
             py5.ellipse(shape['x'], shape['y'], shape['w'], shape['h'])
         elif shape['type'] == 'line':
             py5.line(shape['x1'], shape['y1'], shape['x2'], shape['y2'])
+        elif shape['type'] == 'triangle':
+            py5.triangle(shape['x1'], shape['y1'],
+                         shape['x2'], shape['y2'],
+                         shape['x3'], shape['y3'])
 
         py5.no_stroke()

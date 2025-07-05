@@ -48,7 +48,8 @@ def load_core_tools():
     imports each one, and calls its `register` function to integrate
     the tool with the application's hook manager.
     """
-    tool_modules = ['tools.rectangle_tool', 'tools.ellipse_tool', 'tools.line_tool']
+    tool_modules = ['tools.rectangle_tool', 'tools.ellipse_tool', 'tools.line_tool',
+        'tools.triangle_tool']
     for mod_name in tool_modules:
         module = importlib.import_module(mod_name)
         if hasattr(module, 'register'):
@@ -89,7 +90,14 @@ def mouse_pressed():
     Records the starting coordinates for drag operations if a tool is active.
     """
     if not sidebar.handle_mouse(py5.mouse_x, py5.mouse_y):
-        canvas_manager.start_place(py5.mouse_x, py5.mouse_y)
+        if hasattr(canvas_manager.current_tool, 'handle_click'):
+            shape = canvas_manager.current_tool.handle_click(py5.mouse_x, py5.mouse_y)
+            if shape:
+                canvas_manager.shapes.append(shape)
+                canvas_manager.undo.record(lambda: canvas_manager.shapes.pop(),
+                    lambda: canvas_manager.shapes.append(shape))
+        else:
+            canvas_manager.start_place(py5.mouse_x, py5.mouse_y)
 
 def mouse_dragged():
     """Handle mouse drag events.
@@ -98,6 +106,8 @@ def mouse_dragged():
     as the mouse is dragged.
     """
     canvas_manager.update_preview(py5.mouse_x, py5.mouse_y)
+    if hasattr(canvas_manager.current_tool, 'update_preview'):
+        canvas_manager.current_tool.update_preview(py5.mouse_x, py5.mouse_y)
 
 def mouse_released():
     """Handle mouse release events.
@@ -106,6 +116,8 @@ def mouse_released():
     for undo/redo.
     """
     canvas_manager.finish_place(py5.mouse_x, py5.mouse_y)
+    if hasattr(canvas_manager.current_tool, 'update_preview'):
+        canvas_manager.current_tool.update_preview(py5.mouse_x, py5.mouse_y)
 
 def key_pressed():
     """Handle key press events.

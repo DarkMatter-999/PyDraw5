@@ -2,7 +2,9 @@
 Module for rectangle tool.
 """
 
+# pylint: disable-next=import-error
 from tools.base_tool import BaseTool
+
 
 class RectangleTool(BaseTool):
     """
@@ -37,7 +39,6 @@ class RectangleTool(BaseTool):
         y = min(y1, y2)
         return {'type': 'rect', 'x': x, 'y': y, 'w': w, 'h': h}
 
-
     def place(self, x1, y1, x2, y2):
         """
         Create and return a rectangle shape at the specified location.
@@ -59,6 +60,7 @@ class RectangleTool(BaseTool):
         y = min(y1, y2)
         return {'type': 'rect', 'x': x, 'y': y, 'w': w, 'h': h}
 
+
 def register(hooks):
     """
     Registers the RectangleTool with the hook manager.
@@ -67,4 +69,5 @@ def register(hooks):
         hooks: The HookManager instance to register the tool with.
     """
     tool = RectangleTool(hooks)
-    hooks.run_hooks('tool.register', None, tool=tool, icon_path='assets/icons/rectangle.png')
+    hooks.run_hooks('tool.register', None, tool=tool,
+                    icon_path='assets/icons/rectangle.png')
