@@ -11,31 +11,40 @@ class BaseTool:
     to define how the tool behaves visually and functionally.
     """
 
-    def draw_preview(self, x, y):
+    def make_preview(self, x1, y1, x2, y2) -> dict:
         """
-        Draw a preview of the shape at the given coordinates.
+        Create a preview shape dictionary based on the given drag coordinates.
 
-        This method is intended to be overridden by subclasses.
+        This method is intended to be overridden by subclasses. It should return
+        a dictionary representing the preview shape, similar to the `place` method.
 
         Args:
-            x (float): X-coordinate for the preview.
-            y (float): Y-coordinate for the preview.
+            x1 (float): Starting X-coordinate of the drag.
+            y1 (float): Starting Y-coordinate of the drag.
+            x2 (float): Current X-coordinate of the drag.
+            y2 (float): Current Y-coordinate of the drag.
+
+        Returns:
+            dict: A dictionary representing the preview shape.
         """
         # pylint: disable-next=unnecessary-pass
         pass
 
-    def place(self, x, y, w, h):
+    def place(self, x1, y1, x2, y2) -> dict:
         """
         Place the shape at the given coordinates and return shape data.
 
-        This method should return a dictionary representing the shape,
-        including keys such as 'type', 'x', 'y', 'w', and 'h'.
+        This method should return a dictionary representing the placed shape,
+        including keys such as 'type', 'x', 'y', 'w', and 'h' for rectangular
+        or elliptical shapes, or 'x1', 'y1', 'x2', 'y2' for line shapes.
 
         This method is intended to be overridden by subclasses.
 
         Args:
-            x (float): X-coordinate where the shape should be placed.
-            y (float): Y-coordinate where the shape should be placed.
+            x1 (float): Starting X-coordinate of the drag.
+            y1 (float): Starting Y-coordinate of the drag.
+            x2 (float): Ending X-coordinate of the drag.
+            y2 (float): Ending Y-coordinate of the drag.
 
         Returns:
             dict: A dictionary representing the placed shape.

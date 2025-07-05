@@ -13,14 +13,46 @@ from hooks.hook_manager import HookManager
 from canvas.canvas_manager import CanvasManager
 from ui.sidebar import Sidebar
 from state.undo_redo import UndoRedoManager
-from tools.rectangle_tool import RectangleTool
-from tools.ellipse_tool import EllipseTool
 
 hook_manager = HookManager()
 undo_manager = UndoRedoManager()
 canvas_manager = CanvasManager(hook_manager, undo_manager)
 sidebar = Sidebar(hook_manager, canvas_manager)
+tool_registry = []
 
+
+def on_tool_register(value, tool, icon_path):
+    """
+    Callback function to register tools.
+
+    This hook appends the tool and its icon path to the tool_registry list.
+
+    Args:
+        value: The original value passed to the hook (not used in this case).
+        tool: The tool instance to be registered.
+        icon_path: The path to the tool's icon.
+
+    Returns:
+        The original value (or None, as it's not used).
+    """
+    tool_registry.append((tool, icon_path))
+    return value
+
+hook_manager.add_hook('tool.register', on_tool_register)
+
+def load_core_tools():
+    """
+    Loads core drawing tools by importing their modules and registering them.
+
+    This function iterates through a predefined list of tool modules,
+    imports each one, and calls its `register` function to integrate
+    the tool with the application's hook manager.
+    """
+    tool_modules = ['tools.rectangle_tool', 'tools.ellipse_tool', 'tools.line_tool']
+    for mod_name in tool_modules:
+        module = importlib.import_module(mod_name)
+        if hasattr(module, 'register'):
+            module.register(hook_manager)
 
 def setup():
     """Set up the Py5 sketch window, tools, and sidebar.
@@ -31,13 +63,13 @@ def setup():
     py5.background(255)
     load_plugins()
 
-    rect_tool = RectangleTool(hook_manager)
-    ellipse_tool = EllipseTool(hook_manager)
+    load_core_tools()
 
-    canvas_manager.add_tool(rect_tool)
+    for tool, icon in tool_registry:
+        sidebar.add_tool_button(tool, icon)
 
-    sidebar.add_tool_button(rect_tool, "assets/icons/rectangle.png")
-    sidebar.add_tool_button(ellipse_tool, "assets/icons/ellipse.png")
+    if tool_registry:
+        canvas_manager.add_tool(tool_registry[0][0])
 
 
 def draw():
@@ -53,7 +85,8 @@ def draw():
 def mouse_pressed():
     """Handle mouse press events.
 
-    Delegates mouse input to the sidebar or canvas manager depending on click location.
+    Initiates shape placement or interaction with the sidebar.
+    Records the starting coordinates for drag operations if a tool is active.
     """
     if not sidebar.handle_mouse(py5.mouse_x, py5.mouse_y):
         canvas_manager.start_place(py5.mouse_x, py5.mouse_y)
@@ -61,14 +94,16 @@ def mouse_pressed():
 def mouse_dragged():
     """Handle mouse drag events.
 
-    Delegates mouse input to the canvas manager.
+    Continuously updates the preview of the shape being drawn on the canvas
+    as the mouse is dragged.
     """
     canvas_manager.update_preview(py5.mouse_x, py5.mouse_y)
 
 def mouse_released():
     """Handle mouse release events.
 
-    Delegates mouse input to the canvas manager.
+    Finalizes the placement of the shape on the canvas and records the action
+    for undo/redo.
     """
     canvas_manager.finish_place(py5.mouse_x, py5.mouse_y)
 

@@ -60,37 +60,31 @@ class CanvasManager:
         """
         Update the preview on the canvas.
 
-        Uses the current tool to create a shape preview at the given coordinates,
+        Uses the current tool to create a shape preview based on the drag,
         while dragging.
 
         Args:
-            x (float): X-coordinate of the click.
-            y (float): Y-coordinate of the click.
+            x (float): Current X-coordinate of the mouse during the drag.
+            y (float): Current Y-coordinate of the mouse during the drag.
         """
         if self.current_tool and self.placing:
-            w = abs(x - self.start_x)
-            h = abs(y - self.start_y)
-            cx = min(self.start_x, x)
-            cy = min(self.start_y, y)
-            self.preview_shape = self.current_tool.make_preview(cx, cy, w, h)
+            self.preview_shape = self.current_tool.make_preview(self.start_x, self.start_y, x, y)
+
 
     def finish_place(self, x, y):
         """
         Handle a release event on the canvas.
 
-        Uses the current tool to place a shape at the given coordinates,
-        appends the shape to the canvas when mouse is released.
+        Uses the current tool to place a shape based on the drag,
+        and appends the final shape to the canvas when the mouse is released.
 
         Args:
-            x (float): X-coordinate of the click.
-            y (float): Y-coordinate of the click.
+            x (float): X-coordinate where the mouse was released.
+            y (float): Y-coordinate where the mouse was released.
         """
         if self.current_tool and self.placing:
-            w = abs(x - self.start_x)
-            h = abs(y - self.start_y)
-            cx = min(self.start_x, x)
-            cy = min(self.start_y, y)
-            shape = self.current_tool.place(cx, cy, w, h)
+            shape = self.current_tool.place(self.start_x, self.start_y, x, y)
+            shape = self.hooks.run_hooks('shape.place', shape)
             self.shapes.append(shape)
             # pylint: disable-next=unnecessary-lambda
             self.undo.record(lambda: self.shapes.pop(), lambda: self.shapes.append(shape))
@@ -119,12 +113,19 @@ class CanvasManager:
             shape (BaseTool): Shape instance.
             preview (bool): Whether the shape is a preview.
         """
+        handled = self.hooks.run_hooks('shape.draw', False, shape=shape, preview=preview)
+
+        if handled:
+            return
+
+        py5.stroke(0, 100 if preview else 255)
+        py5.no_fill()
+
         if shape['type'] == 'rect':
-            py5.no_fill()
-            py5.stroke(0, 100 if preview else 255)
             py5.rect(shape['x'], shape['y'], shape['w'], shape['h'])
         elif shape['type'] == 'ellipse':
-            py5.no_fill()
-            py5.stroke(0, 100 if preview else 255)
             py5.ellipse(shape['x'], shape['y'], shape['w'], shape['h'])
+        elif shape['type'] == 'line':
+            py5.line(shape['x1'], shape['y1'], shape['x2'], shape['y2'])
+
         py5.no_stroke()
