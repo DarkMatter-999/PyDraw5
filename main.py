@@ -56,8 +56,21 @@ def mouse_pressed():
     Delegates mouse input to the sidebar or canvas manager depending on click location.
     """
     if not sidebar.handle_mouse(py5.mouse_x, py5.mouse_y):
-        canvas_manager.handle_click(py5.mouse_x, py5.mouse_y)
+        canvas_manager.start_place(py5.mouse_x, py5.mouse_y)
 
+def mouse_dragged():
+    """Handle mouse drag events.
+
+    Delegates mouse input to the canvas manager.
+    """
+    canvas_manager.update_preview(py5.mouse_x, py5.mouse_y)
+
+def mouse_released():
+    """Handle mouse release events.
+
+    Delegates mouse input to the canvas manager.
+    """
+    canvas_manager.finish_place(py5.mouse_x, py5.mouse_y)
 
 def key_pressed():
     """Handle key press events.

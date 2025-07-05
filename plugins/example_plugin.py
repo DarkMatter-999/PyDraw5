@@ -4,9 +4,6 @@ Plugin that tweaks rectangle shapes by randomly modifying their position and siz
 Registers a hook to adjust rectangles during placement using the 'shape.place' hook.
 """
 
-import random
-
-
 def tweak_rect(shape):
     """
     Randomly modify the position and size of a rectangle shape.
@@ -19,11 +16,11 @@ def tweak_rect(shape):
     Returns:
         dict: The modified shape (only if it's a rectangle).
     """
-    if shape['type'] == 'rect' or shape['type'] == 'ellipse':
-        shape['x'] += random.randint(-5, 5)
-        shape['y'] += random.randint(-5, 5)
-        shape['w'] += random.randint(-50, 50)
-        shape['h'] += random.randint(-50, 50)
+    # if shape['type'] == 'rect' or shape['type'] == 'ellipse':
+    #     shape['x'] += random.randint(-5, 5)
+    #     shape['y'] += random.randint(-5, 5)
+    #     shape['w'] += random.randint(-50, 50)
+    #     shape['h'] += random.randint(-50, 50)
     return shape
 
 

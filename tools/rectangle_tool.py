@@ -2,8 +2,7 @@
 Module for rectangle tool.
 """
 
-import py5
-from base_tool import BaseTool
+from tools.base_tool import BaseTool
 
 class RectangleTool(BaseTool):
     """
@@ -22,7 +21,7 @@ class RectangleTool(BaseTool):
         self.hooks = hooks
         self.name = "Rectangle"
 
-    def draw_preview(self, x, y):
+    def make_preview(self, x, y, w, h):
         """
         Draw a preview of the rectangle at the specified location.
 
@@ -30,9 +29,9 @@ class RectangleTool(BaseTool):
             x (float): X-coordinate for the preview.
             y (float): Y-coordinate for the preview.
         """
-        py5.rect(x, y, 100, 100)
+        return {'type': 'rect', 'x': x, 'y': y, 'w': w, 'h': h}
 
-    def place(self, x, y):
+    def place(self, x, y, w, h):
         """
         Create and return a rectangle shape at the specified location.
 
@@ -45,6 +44,6 @@ class RectangleTool(BaseTool):
         Returns:
             dict: A dictionary representing the rectangle shape, 'type', 'x', 'y', 'w', and 'h'.
         """
-        shape = {'type': 'rect', 'x': x, 'y': y, 'w': 100, 'h': 100}
+        shape = {'type': 'rect', 'x': x, 'y': y, 'w': w, 'h': h}
         shape = self.hooks.run_hooks('shape.place', shape)
         return shape

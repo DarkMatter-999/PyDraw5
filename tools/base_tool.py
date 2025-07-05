@@ -24,7 +24,7 @@ class BaseTool:
         # pylint: disable-next=unnecessary-pass
         pass
 
-    def place(self, x, y):
+    def place(self, x, y, w, h):
         """
         Place the shape at the given coordinates and return shape data.
 

@@ -2,8 +2,8 @@
 Module for Ellipse Tool.
 """
 
-import py5
-from base_tool import BaseTool
+# pylint: disable-next=import-error
+from tools.base_tool import BaseTool
 
 class EllipseTool(BaseTool):
     """
@@ -22,7 +22,7 @@ class EllipseTool(BaseTool):
         self.hooks = hooks
         self.name = "Ellipse"
 
-    def draw_preview(self, x, y):
+    def make_preview(self, x, y, w, h):
         """
         Draw a preview of the ellipse at the specified location.
 
@@ -30,9 +30,9 @@ class EllipseTool(BaseTool):
             x (float): X-coordinate for the preview.
             y (float): Y-coordinate for the preview.
         """
-        py5.ellipse(x, y, 50, 50)
+        return {'type': 'ellipse', 'x': x, 'y': y, 'w': w, 'h': h}
 
-    def place(self, x, y):
+    def place(self, x, y, w, h):
         """
         Create and return an ellipse shape at the specified location.
 
@@ -45,6 +45,6 @@ class EllipseTool(BaseTool):
         Returns:
             dict: A dictionary representing the ellipse shape, 'type', 'x', 'y', 'w', and 'h'.
         """
-        shape = {'type': 'ellipse', 'x': x, 'y': y, 'w': 50, 'h': 50}
+        shape = {'type': 'ellipse', 'x': x, 'y': y, 'w': w, 'h': h}
         shape = self.hooks.run_hooks('shape.place', shape)
         return shape
