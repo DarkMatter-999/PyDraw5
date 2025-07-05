@@ -12,12 +12,15 @@ import py5
 from hooks.hook_manager import HookManager
 from canvas.canvas_manager import CanvasManager
 from ui.sidebar import Sidebar
+from ui.layer_panel import LayerPanel
 from state.undo_redo import UndoRedoManager
 
 hook_manager = HookManager()
 undo_manager = UndoRedoManager()
 canvas_manager = CanvasManager(hook_manager, undo_manager)
 sidebar = Sidebar(hook_manager, canvas_manager)
+layer_panel = LayerPanel(canvas_manager)
+canvas_manager.add_layer("Layer 1")
 tool_registry = []
 
 
@@ -38,7 +41,9 @@ def on_tool_register(value, tool, icon_path):
     tool_registry.append((tool, icon_path))
     return value
 
+
 hook_manager.add_hook('tool.register', on_tool_register)
+
 
 def load_core_tools():
     """
@@ -48,12 +53,16 @@ def load_core_tools():
     imports each one, and calls its `register` function to integrate
     the tool with the application's hook manager.
     """
-    tool_modules = ['tools.rectangle_tool', 'tools.ellipse_tool', 'tools.line_tool',
+    tool_modules = [
+        'tools.rectangle_tool',
+        'tools.ellipse_tool',
+        'tools.line_tool',
         'tools.triangle_tool']
     for mod_name in tool_modules:
         module = importlib.import_module(mod_name)
         if hasattr(module, 'register'):
             module.register(hook_manager)
+
 
 def setup():
     """Set up the Py5 sketch window, tools, and sidebar.
@@ -81,6 +90,7 @@ def draw():
     py5.background(255)
     canvas_manager.draw()
     sidebar.draw()
+    layer_panel.draw()
 
 
 def mouse_pressed():
@@ -89,15 +99,23 @@ def mouse_pressed():
     Initiates shape placement or interaction with the sidebar.
     Records the starting coordinates for drag operations if a tool is active.
     """
+    if layer_panel.handle_mouse(py5.mouse_x, py5.mouse_y):
+        return
     if not sidebar.handle_mouse(py5.mouse_x, py5.mouse_y):
         if hasattr(canvas_manager.current_tool, 'handle_click'):
-            shape = canvas_manager.current_tool.handle_click(py5.mouse_x, py5.mouse_y)
+            shape = canvas_manager.current_tool.handle_click(
+                py5.mouse_x, py5.mouse_y)
             if shape:
-                canvas_manager.shapes.append(shape)
-                canvas_manager.undo.record(lambda: canvas_manager.shapes.pop(),
-                    lambda: canvas_manager.shapes.append(shape))
+                layer = canvas_manager.get_current_layer()
+                if layer and not layer.locked:
+                    layer.shapes.append(shape)
+                    canvas_manager.undo.record(
+                        lambda: layer.shapes.pop(),
+                        lambda: layer.shapes.append(shape)
+                    )
         else:
             canvas_manager.start_place(py5.mouse_x, py5.mouse_y)
+
 
 def mouse_dragged():
     """Handle mouse drag events.
@@ -109,6 +127,7 @@ def mouse_dragged():
     if hasattr(canvas_manager.current_tool, 'update_preview'):
         canvas_manager.current_tool.update_preview(py5.mouse_x, py5.mouse_y)
 
+
 def mouse_released():
     """Handle mouse release events.
 
@@ -118,6 +137,13 @@ def mouse_released():
     canvas_manager.finish_place(py5.mouse_x, py5.mouse_y)
     if hasattr(canvas_manager.current_tool, 'update_preview'):
         canvas_manager.current_tool.update_preview(py5.mouse_x, py5.mouse_y)
+
+
+def mouse_moved():
+    """Handle mouse move event.
+    """
+    layer_panel.handle_mouse_moved(py5.mouse_x, py5.mouse_y)
+
 
 def key_pressed():
     """Handle key press events.

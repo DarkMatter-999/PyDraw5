@@ -13,6 +13,7 @@ class TriangleTool(BaseTool):
     This tool requires three clicks to define the three vertices of a triangle.
     It provides a preview of the triangle as points are being collected.
     """
+
     def __init__(self, hooks):
         """
         Initialize the TriangleTool.
@@ -54,9 +55,9 @@ class TriangleTool(BaseTool):
             shape = self.hooks.run_hooks('shape.place', shape)
             self.vertices = []
             self.preview = None
-            return shape  # Final shape to place
+            return shape
 
-        return None  # Still collecting points
+        return None
 
     def update_preview(self, x, y):
         """

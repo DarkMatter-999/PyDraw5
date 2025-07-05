@@ -3,6 +3,7 @@ Module managing the canvas state and tool interactions.
 """
 
 import py5
+from canvas.layer import Layer
 
 # pylint: disable-next=too-many-instance-attributes
 
@@ -32,6 +33,8 @@ class CanvasManager:
         self.start_x = 0
         self.start_y = 0
         self.preview_shape = None
+        self.current_layer_index = 0
+        self.layers = []
 
     def add_tool(self, tool):
         """
@@ -87,11 +90,14 @@ class CanvasManager:
         if self.current_tool and self.placing:
             shape = self.current_tool.place(self.start_x, self.start_y, x, y)
             shape = self.hooks.run_hooks('shape.place', shape)
-            self.shapes.append(shape)
-            # pylint: disable-next=unnecessary-lambda
-            self.undo.record(
-                lambda: self.shapes.pop(),
-                lambda: self.shapes.append(shape))
+
+            layer = self.get_current_layer()
+            if layer and not layer.locked:
+                layer.shapes.append(shape)
+                self.undo.record(
+                    lambda: layer.shapes.pop(),
+                    lambda: layer.shapes.append(shape)
+                )
 
         self.placing = False
         self.preview_shape = None
@@ -102,8 +108,11 @@ class CanvasManager:
 
         Iterates over the stored shapes and draws them.
         """
-        for shape in self.shapes:
-            self.draw_shape(shape)
+        for layer in self.layers:
+            if not layer.visible:
+                continue
+            for shape in layer.shapes:
+                self.draw_shape(shape)
 
         if self.preview_shape:
             self.draw_shape(self.preview_shape, preview=True)
@@ -138,3 +147,93 @@ class CanvasManager:
                          shape['x3'], shape['y3'])
 
         py5.no_stroke()
+
+    def add_layer(self, name=None):
+        """
+        Adds a new layer to the canvas.
+
+        If a name is not provided, a default name "Layer X" is generated.
+        The new layer becomes the current active layer.
+
+        Args:
+            name (str, optional): The name of the new layer. Defaults to None.
+        """
+        name = name or f"Layer {len(self.layers) + 1}"
+        self.layers.append(Layer(name))
+        self.current_layer_index = len(self.layers) - 1
+
+    def get_current_layer(self):
+        """
+        Returns the currently active layer.
+
+        Returns:
+            Layer or None: The current Layer object, or None if no layers exist.
+        """
+        return self.layers[self.current_layer_index] if self.layers else None
+
+    def delete_layer(self, index):
+        """
+        Delete the layer at the given index.
+        """
+        if len(self.layers) <= 1:
+            print("Can't delete the last layer.")
+            return
+
+        layer = self.layers[index]
+
+        should_delete = self.hooks.run_hooks(
+            'layer.delete', True, layer=layer, index=index)
+        if not should_delete:
+            return
+
+        removed = self.layers.pop(index)
+        self.current_layer_index = max(
+            0, self.current_layer_index - (1 if index <= self.current_layer_index else 0))
+
+        self.hooks.run_hooks('layer.deleted', None, layer=removed, index=index)
+
+    def toggle_visibility(self, index):
+        """
+        Toggle the visibility of the layer at the given index.
+
+        Args:
+            index (int): The index of the layer to toggle visibility for.
+        """
+        if 0 <= index < len(self.layers):
+            self.layers[index].visible = not self.layers[index].visible
+
+    def toggle_lock(self, index):
+        """
+        Toggle the locked state of the layer at the given index.
+
+        Args:
+            index (int): The index of the layer to toggle lock for.
+        """
+        if 0 <= index < len(self.layers):
+            self.layers[index].locked = not self.layers[index].locked
+
+    def switch_layer(self, index):
+        """
+        Switches the current active layer to the specified index.
+
+        Args:
+            index (int): The index of the layer to switch to.
+        """
+        if 0 <= index < len(self.layers):
+            self.current_layer_index = index
+
+    def move_layer(self, from_index, to_index):
+        """
+        Moves a layer from one position to another within the layer stack.
+
+        Args:
+            from_index (int): The current index of the layer to move.
+            to_index (int): The target index where the layer should be moved.
+        """
+        if 0 <= from_index < len(
+                self.layers) and 0 <= to_index < len(
+                self.layers):
+            layer = self.layers.pop(from_index)
+            self.layers.insert(to_index, layer)
+            if self.current_layer_index == from_index:
+                self.current_layer_index = to_index
